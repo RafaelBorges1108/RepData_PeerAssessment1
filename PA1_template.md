@@ -7,15 +7,14 @@ output:
     keep_md: yes
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, fig.path = "./figure/")
-```
+
 
 ## Loading and preprocessing the data
 
 Load required packages
 
-```{r packages, message = FALSE}
+
+```r
 ## loading packages
 require(lubridate)
 require(dplyr)
@@ -24,7 +23,8 @@ require(ggplot2)
 
 Load the data
 
-```{r}
+
+```r
 if (!file.exists("./activity.csv")){
       unzip("./activity.zip")
 }
@@ -33,7 +33,8 @@ dataset <- read.csv("./activity.csv", header = TRUE, sep = ",")
 
 Preprocess the data
 
-```{r}
+
+```r
 dataset$date <- ymd(as.character(dataset$date))
 ```
 
@@ -41,7 +42,8 @@ dataset$date <- ymd(as.character(dataset$date))
 
 Make a histogram of the total number of steps taken each day
 
-```{r steps_histogram}
+
+```r
 by_date <- group_by(dataset, date)
 steps_by_date <- summarise(by_date, total = sum(steps, na.rm = TRUE))
 freq <- ggplot(steps_by_date, aes(total))
@@ -52,18 +54,33 @@ freq + geom_histogram(binwidth = 2500, color = "grey", fill = "darkgreen", alpha
       ylab("Frequency")
 ```
 
+![](./figure/steps_histogram-1.png)<!-- -->
+
 Calculate and report the mean and median total number of steps taken per day
 
-```{r steps_stats}
+
+```r
 mean(steps_by_date$total, na.rm = TRUE)
+```
+
+```
+## [1] 9354.23
+```
+
+```r
 median(steps_by_date$total, na.rm = TRUE)
+```
+
+```
+## [1] 10395
 ```
 
 ## What is the average daily activity pattern?
 
 Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 
-```{r steps_series}
+
+```r
 by_interval <- group_by(dataset, interval)
 steps_by_interval <- summarise(by_interval, mean = mean(steps, na.rm = TRUE))
 plot(steps_by_interval$interval, steps_by_interval$mean, type = "l",
@@ -73,19 +90,34 @@ plot(steps_by_interval$interval, steps_by_interval$mean, type = "l",
 )
 ```
 
+![](./figure/steps_series-1.png)<!-- -->
+
 Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 
-```{r max_steps}
+
+```r
 max_steps <- filter(steps_by_interval, mean == max(steps_by_interval$mean))
 max_steps
+```
+
+```
+## # A tibble: 1 x 2
+##   interval  mean
+##      <int> <dbl>
+## 1      835  206.
 ```
 
 ## Imputing missing values
 
 Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
 
-```{r missing}
+
+```r
 sum(is.na(dataset$steps))
+```
+
+```
+## [1] 2304
 ```
 
 Devise a strategy for filling in all of the missing values in the dataset
@@ -94,7 +126,8 @@ Devise a strategy for filling in all of the missing values in the dataset
 
 Create a new dataset that is equal to the original dataset but with the missing data filled in
 
-```{r replace_missing}
+
+```r
 filled_data <- merge(dataset, steps_by_interval)
 for (i in 1:nrow(filled_data)){
       if (is.na(filled_data$steps[i])){
@@ -106,7 +139,8 @@ filled_data <- filled_data[,1:3]
 
 Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day
 
-```{r steps_histogram_filled}
+
+```r
 by_date_filled <- group_by(filled_data, date)
 steps_by_date_filled <- summarise(by_date_filled, total = sum(steps, na.rm = TRUE))
 
@@ -119,11 +153,25 @@ freq + geom_histogram(binwidth = 2500, color = "grey", fill = "darkblue", alpha 
       ylab("Frequency")
 ```
 
+![](./figure/steps_histogram_filled-1.png)<!-- -->
+
 Calculate de mean and median total number of steps per day
 
-```{r steps_stats_filled}
+
+```r
 mean(steps_by_date_filled$total)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 median(steps_by_date_filled$total)
+```
+
+```
+## [1] 10766.19
 ```
 
 Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
@@ -134,7 +182,8 @@ Do these values differ from the estimates from the first part of the assignment?
 
 Create a new factor variable in the dataset with two levels -- "weekday" and "weekend" indicating whether a given date is a weekday or weekend day
 
-```{r steps_weekday, message = FALSE, results = "hide"}
+
+```r
 ## Eliminating regional differences
 curr_locale <- Sys.getlocale("LC_TIME")
 Sys.setlocale("LC_TIME","C")
@@ -158,7 +207,8 @@ Sys.setlocale("LC_TIME",curr_locale)
 
 Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis)
 
-```{r steps_wd_series}
+
+```r
 by_interval_weekday <- group_by(steps_by_weekday, interval, weekday)
 steps_by_interval_wd <- summarise(by_interval_weekday, mean = mean(steps, na.rm = TRUE))
 g <- ggplot(steps_by_interval_wd, aes(x = interval, y = mean)) +
@@ -170,3 +220,5 @@ g <- ggplot(steps_by_interval_wd, aes(x = interval, y = mean)) +
       ylab("Number of Steps")
 print(g)
 ```
+
+![](./figure/steps_wd_series-1.png)<!-- -->
